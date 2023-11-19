@@ -1,20 +1,23 @@
 # msbuild_export
 
-Extract `compile_commands.json` from `.sln` files, without compilation.
+Extract `compile_commands.json` from `.sln` file (required) and CMakeCache.txt (optional), without compilation.
 
 Inspired by [vs_export](https://github.com/paopaol/vs_export) but re-write in Python.
 
 ```cmd
-msbuild_export -s <path> -c <configuration>
+python msbuild_export.py -s <path> -c <configuration>
 
 Where:
             -s   path                        sln filename
-            -c   configuration               project configuration,eg Debug|Win32.
-                                             default Debug|x64
+            -f   configuration               project configuration,eg Debug|Win32.
+                                             default Release|x64
+            -c   cmake_cache                 path to CMakeCache.txt
 ```
 
 Example:
 
-```
-msbuild_export  -s  opengv.sln  -c "Release|x64"
+```bash
+python msbuild_export.py  -s  opengv.sln  -c "Release|x64"
+python msbuild_export.py  -s  D:/github/ncnn/build/vs2022-x64/ncnn.sln  -f "Release|x64" -c "D:/github/ncnn/build/vs2022-x64/CMakeCache.txt"
+python msbuild_export.py  -s  D:/github/ncnn/build/vs2022-x64/ncnn.sln  -f "Release|x64" -c "D:/github/ncnn/build/vs2022-x64/CMakeFiles/CMakeConfigureLog.yaml"
 ```

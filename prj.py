@@ -26,7 +26,7 @@ class Project:
             if len(v.ProjectConfigurationList) > 0:
                 cfgList = v.ProjectConfigurationList
                 break
-        print(cfgList)
+        #print(cfgList)
         if len(cfgList) == 0:
             raise CustomError(self.ProjectPath + ":not found " + conf)
         found = False
@@ -65,9 +65,6 @@ class Project:
                     #     include = include.replace(v, "")
                 return include, def_, None
         return "", "", CustomError("not found " + conf)
-
-    def FindCompilerPath(self, conf):
-        return "cl.exe" # TODO: fix me
 
 
 class ItemGroup:
@@ -108,9 +105,9 @@ class ClCompileSrc:
 
 class CompileCommand:
     def __init__(self, directory="", command="", file=""):
-        self.Dir = directory
-        self.Cmd = command
-        self.File = file
+        self.directory = directory
+        self.command = command
+        self.file = file
 
 
 badInclude = [
@@ -126,7 +123,7 @@ badDef = [
 
 def NewProject(path):
     pro = Project()
-    pro.ProjectPath = os.path.abspath(path)
+    pro.ProjectPath = os.path.abspath(path).replace("\\", "/")
     pro.ProjectDir = os.path.dirname(pro.ProjectPath)
 
     try:
@@ -145,9 +142,7 @@ def xml_to_project(xml_data, pro):
     pro.XMlName = root.tag
     for child in root:
         tagname = child.tag.split('}')[-1]
-        print("[DEBUG] child.tag = %s" % tagname)
-        if(tagname == "ItemDefinitionGroup"):
-            print("wait")
+        # print("[DEBUG] child.tag = %s" % tagname)
         if tagname == 'ItemGroup':
             item_group = ItemGroup()
             item_group.Label = child.attrib.get('Label', "")

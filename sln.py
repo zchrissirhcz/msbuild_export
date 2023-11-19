@@ -7,16 +7,17 @@ class Solution:
     def __init__(self):
         self.SolutionDir = ""
         self.ProjectList = []
+        self.vs_version = ""
 
-    def CompileCommandsJson(self, conf):
+    def CompileCommandsJson(self, conf, c_compiler, cxx_compiler):
         cmdList = []
 
         for pro in self.ProjectList:
             src_files = pro.FindSourceFiles()
             for f in src_files:
                 item = prj.CompileCommand()
-                item.Dir = pro.ProjectDir
-                item.File = f
+                item.directory = pro.ProjectDir
+                item.file = f
 
                 inc, definition, err = pro.FindConfig(conf)
                 if err:
@@ -33,10 +34,12 @@ class Solution:
                 inc = prj.RemoveBadInclude(inc)
                 inc = preappend(inc, "-I")
 
-                print(type(pro))
-                compiler_path = pro.FindCompilerPath(conf)
-                cmd = compiler_path + " " + definition + " " + inc + " -c " + f
-                item.Cmd = cmd
+                if f.endswith(".c"):
+                    compiler = c_compiler
+                elif f.endswith(".cpp") or f.endswith(".cc") or f.endswith(".cxx"):
+                    compiler = cxx_compiler
+                cmd = compiler + " " + definition + " " + inc + " -c " + f
+                item.command = cmd
 
                 cmdList.append(item)
 
@@ -47,6 +50,7 @@ def NewSln(path):
     err = None
 
     sln.SolutionDir = os.path.dirname(os.path.abspath(path))
+    sln.vs_version = find_vs_version(path)
     projectFiles, err = find_all_project(path)
     if err:
         print(err)
@@ -61,8 +65,6 @@ def NewSln(path):
             continue
         elif projectPath.startswith("arcpkg-") and projectPath.endswith(".vcxproj"):
             continue
-        elif projectPath.endswith("main.vcxproj"): # HACK
-            continue
         fullpath = os.path.join(sln.SolutionDir, projectPath)
         if os.path.exists(fullpath) == False:
             continue
@@ -71,6 +73,27 @@ def NewSln(path):
             return sln, err
         sln.ProjectList.append(pro)
     return sln, None
+
+def find_vs_version(sln_path):
+    # Visual Studio Version 17
+    lines = []
+    for line in open(sln_path, 'r', encoding='utf-8'):
+        lines.append(line)
+    vs_version = ""
+    for line in lines:
+        if line.startswith("# Visual Studio Version 17"):
+            vs_version = "vs2022"
+            break
+        elif line.startswith("# Visual Studio Version 16"):
+            vs_version = "vs2019"
+            break
+        elif line.startswith("# Visual Studio Version 15"):
+            vs_version = "vs2017"
+            break
+        elif line.startswith("# Visual Studio Version 14"):
+            vs_version = "vs2015"
+            break
+    return vs_version
 
 def find_all_project(path):
     try:
